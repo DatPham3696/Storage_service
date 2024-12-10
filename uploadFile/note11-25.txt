@@ -1,0 +1,32 @@
+FileInputStream file = new FileInputStream("abc.txt")                                       
+BuffredInputStream file = new BufferedInputStream(ByteArrayInputStream): đọc dữ liệu từ bộ đệm
+FileReader: đọc các kí tự từ 1 file
+BufferedReader : đọc văn bản từ 1 character-input stream
+FileOutputStream o = new FileOutputStream()
+-> convert về byte mới có thể ghi file
+.flush(): xóa bộ đệm 
+IO; https://viblo.asia/p/javanet-p2-java-io-obA46dDMLKv
+JAVA NIO: 
+---------------
+1 chương trình được nạp vào bộ nhớ để thực thi -> thành process(tiến trình), thread là bộ phận nhỏ nhất của tiến trình 
+Lambda Expression là cách viết hàm ẩn danh, giúp định nghĩa một đoạn logic mà không cần phải khai báo lớp hoặc phương thức riêng biệt. Thường được dùng để viết mã ngắn gọn hơn, đặc biệt khi làm việc với Functional Interfaces
+-------------------
+Collection Framework trong Java là một tập hợp các giao diện và lớp được thiết kế để lưu trữ và xử lý dữ liệu theo cấu trúc.
+Collection: Giao diện gốc của các Collection.
+Interfaces: 
+List: Duy trì thứ tự phần tử, cho phép phần tử trùng lặp (ArrayList, LinkedList).
+Set: Không cho phép phần tử trùng lặp (HashSet, LinkedHashSet, TreeSet).
+Queue: Lưu trữ các phần tử theo thứ tự, thường dùng trong các thuật toán (PriorityQueue, LinkedList).
+Classes:
+ArrayList: Danh sách có kích thước thay đổi, cho phép truy cập ngẫu nhiên.
+LinkedList: Danh sách liên kết, phù hợp với việc thêm/xóa nhanh.
+HashSet: Lưu trữ phần tử không trùng lặp, không theo thứ tự.
+TreeSet: Lưu trữ phần tử không trùng lặp và sắp xếp chúng.
+HashMap: Dữ liệu lưu trữ dưới dạng key-value, không theo thứ tự.
+TreeMap: Map được sắp xếp theo key.
+-----------------------
+Java NIO cho phép thực thi các thao tác IO với tốc độ nhanh và cung cấp nhiều tính năng hỗ trợ tối ưu hóa hiệu xuất.
+Buffers: là một vùng nhớ có thể đọc và ghi dữ liệu từ đó. Được bao bọc trong 1 NIO Buffer object.
+Channel: dùng để thao tác giữa nội bộ Java NIO với bên ngoài. Từ 1 channel có thể đọc dữ liệu từ 1 buffer hoặc ghi dữ liệu vào 1 buffer
+Selectors: Là object quản lý nhiều channel
+-------------

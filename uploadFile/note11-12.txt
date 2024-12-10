@@ -1,0 +1,211 @@
+`internet work:
+2 máy tính muốn giao tiếp cần kết nối thông qua dây vật lý/ wifi
+nhiều máy tính muốn giao tiếp thì cần kết nối với 1 máy tính nhỏ gọi là router,
+các router có thể kết nối với nhau
+muốn kết nối với người khác cần kết nối với modem , muốn gửi đi thông điệp cần kết nối tới
+ISP, muốn gửi tới 1 địa chỉ cụ thể thì thông qua IP(internet protocol)
+--------------------
+TCP là giao thức phân mảnh dòng dữ liệu thành các gói tin nhỏ hơn và cung cấp các cơ chế
+ để đảm bảo việc truyền dữ liệu một cách tin cậy và có thứ tự.
+ Chương trình đảm bảo rằng tất cả các gói tin được gửi từ một máy tính sẽ
+ được nhận bởi máy tính đích một cách chính xác và theo đúng thứ tự.
+-----------
+mô hình OSI
+lớp vật lý: cáp, kk
+lớp liên kết dữ liệu : kết nối 2 máy trên 1 mạng nơi lớp vật lý đã tồn tại,
+quản lý việc truyền tải dữ liệu giữa hai thiết bị trong cùng một mạng
+lớp mạng : router, xác định địa chỉ IP, IPv4, IPv6
+lớp truyền tải:  quản lý kết nối,TCP
+lớp phiên: quản lý phiên
+lớp trình bày:kiểm tra tính toàn vẹn dữ liệu, đảm bảo truyền tải giữa 2 thiết bị trong 1 mạng con
+lớp ứng dụng: HTTP
+Không phải tất cả các hệ thống sử dụng mô hình OSI đều triển khai tất cả các lớp.
+mô hình TCP/IP
+Tầng vật lý: Tầng vật lý có nhiệm vụ truyền tải dữ liệu giữa các thiết bị trong cùng một mạng Internet.
+Tầng mạng: Dùng giao thức ip, xác định địa chỉ truyền dữ liệu đến
+Tầng giao vận: sử dụng giao thức TCP, chia dữ liệu thành các đoạn không đều nhau
+Tầng ứng dụng: cung cấp dịch vụ trao đổi 
+---------------
+một server 0 phải 1 máy tính duy nhất, một máy có thể chạy n server khác nhau
+Với giao thức HTTP/1.1, một tính năng quan trọng được giới thiệu là Host header.
+ Điều này cho phép nhiều server web (hoặc ứng dụng khác nhau) có thể chia sẻ cùng một 
+địa chỉ IP nhưng vẫn có thể phục vụ các tên miền khác nhau.
+
+Quá trình thiết lập kết nối (Handshake):
+TCP sử dụng 3-way handshake để thiết lập kết nối giữa client và server. Quá trình này là một phần rất quan trọng trong việc tạo ra một kết nối tin cậy.
+Quá trình này diễn ra như sau:
+SYN: Client gửi một gói SYN (synchronize) để yêu cầu kết nối.
+SYN-ACK: Server nhận gói SYN và gửi lại một gói SYN-ACK để xác nhận việc nhận yêu cầu kết nối.
+ACK: Client gửi lại gói ACK để xác nhận kết nối đã được thiết lập
+-------------------
+Responses consist of the following elements:
+•	The version of the HTTP protocol they follow.
+•	A status code, indicating if the request was successful, or not, and why.
+•	A status message, a non-authoritative short description of the status code.
+•	HTTP headers, like those for requests.
+•	Optionally, a body containing the fetched resource.
+200: yêu cầu http thành công
+201: trang được tạo thành công bởi dữ liệu biểu mẫu
+3XX: trạng thái này cho biết client cần có thêm action để hoàn thành request
+301: chuyển hướng vĩnh viễn URL đến 1 URl khác
+302: trang được di chuyển tạm thời, url mới có sẵn, tự động được điều hướng 
+308: dữ liệu được di chuyển vĩnh viễn đến url khác
+400: bad request yêu cầu bị từ chối
+401: Unauthorized chưa được xác thực
+403: Forbidden không đủ quyền
+405: Method not allow
+5XX: Lỗi phía máy chủ
+500: Internal Server Error yêu cầu không thể được máy chủ thực hiện
+---------------------
+index: https://viblo.asia/p/su-dung-index-trong-sql-query-1ZnbRlPQR2Xo
+CREATE INDEX idx_last_name ON employee(last_name)
+CREATE INDEX idx_last_name_depart ON employee(last_name, department_id)
+view: CREATE VIEW viewname as SELECT abc.pr FROM abc
+xem view : SELECT * FROM viewname
+đổi view: ALTER VIEW viewname AS SELECT 
+partition: phân chia bảng theo từng đoạn
+Partition trong SQL là quá trình chia bảng thành nhiều phần nhỏ (partition)
+dựa trên một hoặc nhiều cột trong bảng. Mỗi phần nhỏ này được lưu trữ độc lập,
+nhưng chúng vẫn thuộc cùng một bảng.
+*Phân vùng theo khoảng(RANGE):
+chia dữ liệu theo 1 cột( thường là theo thời gian) 
+PARTITION BY RANGE(dkien)(
+PARTITION tenphanvung VALUES LESS THAN (2021)
+)
+*Phân vùng theo danh sách (LIST) :
+PARTITION BY LIST (ten_truong_loc)(
+	PARTITION tenphanvung VALUES IN ('gia tri trường')
+)
+*Phân vùng kết hợp(RANGE + LIST) 
+*Phân vùng theo hàm băm 
+--------------------------- 
+connection pool,  
+*linkedlist:
+LinkedList<> list = new LinkedList()// nếu không chỉ ra kiểu dữ liệu thì là raw type(0 kiểu dữ liệu)
+.add(Object o), add(index,o): chèn phần tử tại vị trí quy định, addFisrt(), addLast(), size(),
+contains(Object), remove(Object o), getFirst(), getLast(), indexOf(Object) trả về chỉ mục,
+truy cập: O(n) cần duyệt qua toàn bộ
+chèn/xóa: O(1) thay đổi liên kết giữa các nốt
+cần nhiều bộ nhớ hơn Array vì chứa thêm con trỏ
+*hashtable: 
+đưa 1 phần tử vào HT,ta đưa key vào hashfucntion, hashf tính ra một index để lưu phần tử
+vào , khi cần tìm thì dựa vào key để tính ra index
+hashtable<K,V> list = new hashtable()
+*stack:LIFO
+push(): thêm vào phần tử của đỉnh stack
+pop(): loại bỏ, trả về phần tử ở đỉnh stack
+peek(): trả về phần tử đầu tiên-0 loại bỏ
+empty(): ktra xem có rỗng 0
+search(Object): trả về vị trí phần tử, tính từ đỉnh
+Stack<> stack = new Stack()
+*queue: FIFO
+Queue<Obj> queue = new PriorityQueue()
+offer(O o) thêm vào cuối hàng đợi, nếu thành công trả về true
+poll() LẤY VÀ loại bỏ phần tử hàng đợi, nếu phần tử rỗng trả về null
+peek() lấy ở đầu hàng đợi mà không loại bỏ nó.
+remove() lấy và loại bỏ phần tử hàng đợi. nếu hàng đợi rỗng trả về ngoại lệ
+--------------------------
+Java I/O:
+Thành phần chính: streams,Readers, Writers,Bytes Streams, Character Streams
+các lớp:
+InputStream: Là lớp cha của tất cả các lớp đọc dữ liệu dạng byte.
+OutputStream: Là lớp cha của tất cả các lớp ghi dữ liệu dạng byte.
+lớp con : FileInputStream: Đọc dữ liệu từ tệp dưới dạng byte.
+FileOutputStream: Ghi dữ liệu ra tệp dưới dạng byte.
+BufferedInputStream: Cung cấp khả năng đọc nhanh hơn thông qua việc sử dụng bộ đệm.
+BufferedOutputStream: Cung cấp khả năng ghi nhanh hơn thông qua bộ đệm.
+DataInputStream: Đọc các kiểu dữ liệu cơ bản (int, float, long, v.v.) từ byte stream.
+DataOutputStream: Ghi các kiểu dữ liệu cơ bản vào byte stream
+Java hỗ trợ serialization (tuần tự hóa) và deserialization (giải tuần tự hóa) để ghi các
+ đối tượng vào tệp và sau đó đọc chúng lại. Khi một đối tượng được serialized, trạng thái
+ của nó được ghi vào tệp dưới dạng byte, và có thể được deserialized sau đó để khôi phục 
+lại trạng thái của đối tượng.
+--------------------------
+thread: là tiến trình con, đơn vị nhỏ nhất để thực hiện công việc
+multi-thread; tiến trình thực hiện nhiều thread
+đa nhiệm(multitask): chạy 1 hoặc nhiều chương trình, đa nhiệm dựa trên đa tiến trình
+---------------------------
+-role trong postgresql:
+kiểm tra danh sách role:
+	select * from pg_roles; / \du+
+kiểm tra role đang đăng nhập:
+	select current_user;
+tạo mới role:
+	create role DatPham login password '123';
+gán quyền cho role:
+	GRANT CONNECT ON DATABASE postgres TO DatPham
+	GRANT USAGE, CREATE ON SCHEMA public TO DatPham
+	GRANT INSERT ON tenbang TO DatPham (tương tự với update,delete)
+kết nối role và DB:
+	psql -h localhost -U DatPham -W -d databaseName
+	note : -U: user, -W: option nhập password, -h: chỉ định host kết nối tới
+Thay đổi password cho role:
+	Alter role DatPham with password '456';
+Đưa role lên thành superuser:
+	Alter role DatPham superuser;
+	ALTER USER DatPham WITH SUPERUSER
+Cấp tất cả quyền cho các bảng:
+	GRANT ALL PRIVILEGES ON ALL TABLE IN SCHEMA schema_name TO DatPham;
+Kế thừa:
+	alter role DatPham inherit; có thể grant quyền của DatPham cho role khác. với noinherit thì
+ngược lại
+Xóa bỏ role:
+	drop role DatPham( cần chuyển sở hữu bảng cho role khác thì mới drop được)
+-----------------------------------------
+Store procedures
+T-SQL: 
+biến trong T-SQL:
+	DECLARE @variable_name datatype;
+	SET @variable_name = value;
+If:
+	IF condition (vd : @variable_name > 50)
+	BEGIN
+		PRINT 'abc';
+	END
+	ELSE 
+	BEGIN
+		PRINT 'abc';
+	END
+WHITE:
+	WHITE dkien (vd: @variable_name > 50)
+	BEGIN
+		PRINT @variable_name;
+		SET @variable_name = @variable_name + 1
+	END
+STORED PROCEDURES 
+declaration:
+	CREATE PROCEDURE procedureName
+	AS
+	BEGIN
+		--SQL statement
+	END;
+call procedures:
+	EXEC procedureName
+TRIGGERS: 
+	CREATE TRIGGER tringgerName
+	ON table_name
+	AFTER INSERT,UPDATE,DELETE
+	AS
+	BEGIN
+		--SQL statement
+	END;
+TRANSACTION:
+OMMIT: để lưu các thay đổi.
+ROLLBACK: để quay trở lại trạng thái trước khi có thay đổi.
+SAVEPOINT: tạo các điểm (point) bên trong các nhóm Transaction để ROLLBACK, tức là để quay trở lại điểm trạng thái đó.
+SET TRANSACTION: đặt một tên cho một Transaction.
+Các lệnh điều khiển Transaction chỉ được sử dụng với các lệnh thao tác dữ liệu như INSERT,
+ UPDATE và DELETE. Tuy nhiên chúng không thể được sử dụng trong lệnh CREATE TABLE hoặc DROP
+ TABLE vì các hoạt động này được tự động xác định trong cơ sở dữ liệu.(Các lệnh DDL, bao
+ gồm CREATE, DROP, và ALTER thường không tham gia vào giao dịch (transaction) theo cách 
+giống như các lệnh DML (Data Manipulation Language) như INSERT, UPDATE, DELETE, chúng ảnh
+hưởng lâu dài và 0 thể hoàn tác)
+FUNCTION:
+-	Trả về các giá trị vô hướng của các kiểu dữ liệu T-SQL
+-	Trả về bảng, là kết quả của 1/nhiều lệnh
+----------------
+Java nhận luồng đầu vào(InputStream)
+-	Đọc dữ liệu từ File
+-	Đọc dữ liệu từ kết nối mạng(HttpUrlConnection)
+-	Đọc dữ liệu qua socket
+-	connection.getInputStream() : lấy đầu vào từ phản hồi
