@@ -1,7 +1,9 @@
 package com.storage_service.storage.controller;
 
+import com.storage_service.storage.FileUtils.FileUtils;
+import com.storage_service.storage.dto.request.FileSearchRequest;
+import com.storage_service.storage.dto.response.FilesResponse;
 import com.storage_service.storage.entity.File;
-import com.storage_service.storage.repository.FileRepository;
 import com.storage_service.storage.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +18,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/file")
-//@RequiredArgsConstructor
-public class FileController {
-    @Autowired
-    private FileService fileService;
-
+@RequestMapping("/api/file/private")
+@RequiredArgsConstructor
+public class PrivateFileController {
+    private final FileService fileService;
+    private final FileUtils fileUtils;
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
                                         @RequestParam("visibility") boolean visibility,
@@ -34,7 +36,6 @@ public class FileController {
             throw new RuntimeException(e.getMessage());
         }
     }
-
     @PostMapping("/uploads")
     public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files,
                                          @RequestParam("visibility") boolean visibility,
@@ -45,11 +46,29 @@ public class FileController {
             throw new RuntimeException(e.getMessage());
         }
     }
-
+    @GetMapping("/files-search")
+    public ResponseEntity<FilesResponse<File>> getListPagingFile(@ModelAttribute FileSearchRequest request){
+        try {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(fileService.pagingFile(request));
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+    @DeleteMapping("/delete/{fileId}")
+    public ResponseEntity<?> deleteFile(@PathVariable String fileId) {
+        try {
+            fileUtils.isVisibility(fileId);
+            fileService.deleteFile(fileId);
+            return ResponseEntity.ok().body("Delete successful");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
     @GetMapping("/get-content/{fileId}")
     public ResponseEntity<?> getFileContent(@PathVariable("fileId") String id) {
         try {
-            Resource resource = fileService.getFile(id);
+            fileUtils.isVisibility(id);
+            Resource resource = fileService.pagingFile(id);
             String contentType = Files.probeContentType(Paths.get(resource.getURI()));
             if (contentType == null) {
                 contentType = "application/octet-stream";
@@ -57,35 +76,32 @@ public class FileController {
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(resource);
-
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
-
-    @PutMapping("/update-file/{fileId}")
-    public ResponseEntity<?> uploadFile(@PathVariable String fileId,
-                                        @RequestParam("file") MultipartFile file,
-                                        @RequestParam("visibility") boolean visibility,
-                                        @RequestParam("version") String version) {
+    @GetMapping("/view-image/{filedId}")
+    public ResponseEntity<?> viewImage(
+            @PathVariable("filedId") String fileId,
+            @RequestParam Optional<Integer> width,
+            @RequestParam Optional<Integer> height,
+            @RequestParam Optional<Double> ratio
+    ) {
         try {
-            File updatedFile = fileService.updateFile(fileId, file, visibility, version);
-            return ResponseEntity.ok().body(updatedFile);
+            fileUtils.isVisibility(fileId);
+            Resource resource = fileService.pagingFile(fileId);
+            byte[] fileContent = fileService.processImage(resource, width, height, ratio);
+            String contentType = Files.probeContentType(Paths.get(resource.getURI()));
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+            return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(fileContent);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         }
     }
-
-    @DeleteMapping("/delete/{fileId}")
-    public ResponseEntity<?> deleteFile(@PathVariable String fileId) {
-        try {
-            fileService.deleteFile(fileId);
-            return ResponseEntity.ok().body("Delete successful");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
-
 }

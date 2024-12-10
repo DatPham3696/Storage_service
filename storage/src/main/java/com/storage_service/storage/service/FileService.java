@@ -1,40 +1,45 @@
 package com.storage_service.storage.service;
 
+import com.storage_service.storage.dto.request.FileSearchRequest;
+import com.storage_service.storage.dto.response.FilesResponse;
 import com.storage_service.storage.entity.File;
 import com.storage_service.storage.repository.FileRepository;
-import jakarta.validation.Valid;
+import com.storage_service.storage.repository.FileRepositoryImpl;
 import lombok.RequiredArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
-import java.io.FileInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
     private final FileRepository fileRepository;
+    private final FileRepositoryImpl fileRepositoryImpl;
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     public File uploadFile(MultipartFile file, boolean visibility, String version) throws IOException {
-        Path uploadPath = Paths.get(uploadDir);
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        Path uploadPath = Paths.get(uploadDir, currentDate);
         if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath); // Tạo thư mục
+            Files.createDirectories(uploadPath);
         }
         String fileName = file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
@@ -60,7 +65,7 @@ public class FileService {
         return "Upload file success";
     }
 
-    public Resource getFile(String fileId) throws IOException {
+    public Resource pagingFile(String fileId) throws IOException {
         File fileEntity = fileRepository.findById(fileId).orElseThrow(() -> new RuntimeException("File not found"));
         Path path = Paths.get(fileEntity.getFilePath());
         Resource resource = new FileSystemResource(path);
@@ -68,6 +73,24 @@ public class FileService {
             throw new IOException("File not found: " + fileEntity.getFileName());
         }
         return resource;
+    }
+
+    public byte[] processImage(Resource resource, Optional<Integer> width, Optional<Integer> height, Optional<Double> ratio) throws IOException {
+        String contentType = Files.probeContentType(Paths.get(resource.getURI()));
+        if (contentType != null && contentType.startsWith("image")) {
+            InputStream inputStream = resource.getInputStream();
+            Thumbnails.Builder<?> thumbnailBuilder = Thumbnails.of(inputStream);
+            if (width.isPresent() && height.isPresent()) {
+                thumbnailBuilder.forceSize(width.get(), height.get());
+            } else if (ratio.isPresent()) {
+                thumbnailBuilder.scale(ratio.get());
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            thumbnailBuilder.toOutputStream(outputStream);
+
+            return outputStream.toByteArray();
+        }
+        return Files.readAllBytes(Paths.get(resource.getURI()));
     }
 
     public File updateFile(String fileId, MultipartFile file, boolean visibility, String version) throws IOException {
@@ -79,7 +102,6 @@ public class FileService {
             Files.delete(Paths.get(existingFile.getFilePath()));
         }
         Files.copy(file.getInputStream(), filePath);
-
         existingFile.setFileName(fileName);
         existingFile.setFileType(file.getContentType());
         existingFile.setFileSize(String.valueOf(file.getSize()));
@@ -100,4 +122,24 @@ public class FileService {
         }
         fileRepository.delete(file);
     }
+
+    public FilesResponse<File> pagingFile(FileSearchRequest request) {
+        List<File> file = fileRepositoryImpl.searchFile(request);
+        Long totalFile = fileRepositoryImpl.countFile(request);
+        return new FilesResponse<>(file, (totalFile / request.getSize()));
+    }
+
+    public ResponseEntity<Resource> downloadFile(String fileId) throws IOException {
+        Resource resource = pagingFile(fileId);
+        File file = fileRepository.findById(fileId).orElseThrow();
+        String mimeType = file.getFileType();
+        if (mimeType == null || mimeType.isEmpty()) {
+            mimeType = "application/octet-stream";
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
+                .body(resource);
+    }
+
 }
