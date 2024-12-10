@@ -1,0 +1,29 @@
+server:
+ port: 8099
+spring:
+ application:
+  name: storage
+ datasource:
+  url: jdbc:postgresql://localhost:5432/StorageDB
+  username: postgres
+  password: postdb
+  driver-class-name: org.postgresql.Driver
+ jpa:
+  hibernate:
+   ddl-auto: update
+   generate-ddl: true
+   dialect: org.hibernate.dialect.PostgreSQLDialect
+   format-sql: true
+   show-sql: true
+   security:
+    authentication:
+    user:
+     name: admin
+     password: password
+    oauth2:
+     resourceserver:
+      jwt:
+       issuer-uri: http://localhost:8080/realms/IAM
+       jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
+file:
+ upload-dir: uploadFile
