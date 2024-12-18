@@ -9,11 +9,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileUtils {
     private final FileRepository fileRepository;
-    public boolean isVisibility(String fileId){
+    public void checkPrivate(String fileId){
+        File file = fileRepository.getFileByFileId(fileId).orElseThrow(() -> new RuntimeException("Not found file"));
+        if(file.isVisibility()){
+            throw new RuntimeException("Not allow");
+        }
+    }
+    public void checkPublic(String fileId){
         File file = fileRepository.getFileByFileId(fileId).orElseThrow(() -> new RuntimeException("Not found file"));
         if(!file.isVisibility()){
-            return true;
+            throw new RuntimeException("Not allow");
         }
-        throw new RuntimeException("Not allow");
     }
 }

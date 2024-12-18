@@ -1,5 +1,6 @@
 package com.storage_service.storage.controller;
 
+import com.storage_service.storage.FileUtils.FileUtils;
 import com.storage_service.storage.entity.File;
 import com.storage_service.storage.service.FileService;
 import lombok.RequiredArgsConstructor;
@@ -22,23 +23,31 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PublicFileController {
     private final FileService fileService;
+    private final FileUtils fileUtils;
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
                                         @RequestParam("visibility") boolean visibility,
-                                        @RequestParam("version") String version) {
+                                        @RequestParam("version") String version,
+                                        @RequestParam(value = "owner", defaultValue = "System") String owner) {
         try {
-            return ResponseEntity.ok().body(fileService.uploadFile(file, visibility, version));
+            return ResponseEntity.ok().body(fileService.uploadFile(file, visibility, version, owner));
         } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Co loi xay ra " + e.getMessage());
         }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> getTest() {
+        return ResponseEntity.ok().body("success");
     }
 
     @PostMapping("/uploads")
     public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files,
                                          @RequestParam("visibility") boolean visibility,
-                                         @RequestParam("version") String version) {
+                                         @RequestParam("version") String version,
+                                         @RequestParam(value = "owner", defaultValue = "Anonymous user") String owner) {
         try {
-            return ResponseEntity.ok().body(fileService.uploadFiles(files, visibility, version));
+            return ResponseEntity.ok().body(fileService.uploadFiles(files, visibility, version, owner));
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -47,7 +56,8 @@ public class PublicFileController {
     @GetMapping("/get-content/{fileId}")
     public ResponseEntity<?> getFileContent(@PathVariable("fileId") String id) {
         try {
-            Resource resource = fileService.pagingFile(id);
+            fileUtils.checkPublic(id);
+            Resource resource = fileService.getContent(id);
             String contentType = Files.probeContentType(Paths.get(resource.getURI()));
             if (contentType == null) {
                 contentType = "application/octet-stream";
@@ -63,14 +73,14 @@ public class PublicFileController {
     }
 
     @GetMapping("/view-image/{filedId}")
-    public ResponseEntity<?> viewImage(
-            @PathVariable("filedId") String fileId,
-            @RequestParam Optional<Integer> width,
-            @RequestParam Optional<Integer> height,
-            @RequestParam Optional<Double> ratio
+    public ResponseEntity<?> viewImage(@PathVariable("filedId") String fileId,
+                                       @RequestParam Optional<Integer> width,
+                                       @RequestParam Optional<Integer> height,
+                                       @RequestParam Optional<Double> ratio
     ) {
         try {
-            Resource resource = fileService.pagingFile(fileId);
+            fileUtils.checkPublic(fileId);
+            Resource resource = fileService.getContent(fileId);
             byte[] fileContent = fileService.processImage(resource, width, height, ratio);
             String contentType = Files.probeContentType(Paths.get(resource.getURI()));
             if (contentType == null) {
@@ -90,6 +100,7 @@ public class PublicFileController {
                                         @RequestParam("visibility") boolean visibility,
                                         @RequestParam("version") String version) {
         try {
+            fileUtils.checkPublic(fileId);
             File updatedFile = fileService.updateFile(fileId, file, visibility, version);
             return ResponseEntity.ok().body(updatedFile);
         } catch (IOException e) {
@@ -98,8 +109,8 @@ public class PublicFileController {
     }
 
     @GetMapping("/download/{fileId}")
-    public ResponseEntity<?> downloadFile(@PathVariable("fileId") String fileId){
-        try{
+    public ResponseEntity<?> downloadFile(@PathVariable("fileId") String fileId) {
+        try {
             return fileService.downloadFile(fileId);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());

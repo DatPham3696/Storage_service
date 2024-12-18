@@ -39,30 +39,52 @@ public class FileRepositoryImpl implements FileRepositoryCustom{
 
     private String createWhereQuery(FileSearchRequest request, Map<String, Object> values) {
         StringBuilder sql = new StringBuilder();
-//        sql.append(" where e.deleted = false");
+        boolean hasWhereClause = false;
 
         if (StringUtils.hasLength(request.getKeyword())) {
-            sql.append(" where ( lower(e.fileName) like :keyword or lower(e.fileType) like :keyword or lower(e.createdDate) like :keyword )");
+            if (!hasWhereClause) {
+                sql.append(" where ");
+                hasWhereClause = true;
+            } else {
+                sql.append(" and ");
+            }
+            sql.append(" (lower(e.fileName) like :keyword or lower(e.fileType) like :keyword)");
             values.put("keyword", "%" + request.getKeyword().toLowerCase() + "%");
         }
 
         if (StringUtils.hasLength(request.getFileName())) {
-            sql.append(" where e.fileName = :fileName ");
+            if (!hasWhereClause) {
+                sql.append(" where ");
+                hasWhereClause = true;
+            } else {
+                sql.append(" and ");
+            }
+            sql.append(" e.fileName = :fileName ");
             values.put("fileName", request.getFileName());
         }
+
         if (StringUtils.hasLength(request.getFileType())) {
-            sql.append(" where e.fileType = :fileType ");
+            if (!hasWhereClause) {
+                sql.append(" where ");
+                hasWhereClause = true;
+            } else {
+                sql.append(" and ");
+            }
+            sql.append(" e.fileType = :fileType ");
             values.put("fileType", request.getFileType());
         }
+
         if (request.getCreatedDate() != null) {
-            sql.append(" where e.createdDate = :createdDate ");
+            if (!hasWhereClause) {
+                sql.append(" where ");
+                hasWhereClause = true;
+            } else {
+                sql.append(" and ");
+            }
+            sql.append(" e.createdDate = :createdDate ");
             values.put("createdDate", request.getCreatedDate());
         }
 
-//        if (!CollectionUtils.isEmpty(request.getStatuses())) {
-//            sql.append(" and e.status in :statuses ");
-//            values.put("statuses", request.getStatuses());
-//        }
         return sql.toString();
     }
     private StringBuilder createOrderQuery(String sortBy) {

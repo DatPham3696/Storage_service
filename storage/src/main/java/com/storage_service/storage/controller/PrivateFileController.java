@@ -29,9 +29,10 @@ public class PrivateFileController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
                                         @RequestParam("visibility") boolean visibility,
-                                        @RequestParam("version") String version) {
+                                        @RequestParam("version") String version,
+                                        @RequestParam(value = "owner", defaultValue = "Anonymous user") String owner) {
         try {
-            return ResponseEntity.ok().body(fileService.uploadFile(file, visibility, version));
+            return ResponseEntity.ok().body(fileService.uploadFile(file, visibility, version, owner));
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -39,17 +40,20 @@ public class PrivateFileController {
     @PostMapping("/uploads")
     public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files,
                                          @RequestParam("visibility") boolean visibility,
-                                         @RequestParam("version") String version) {
+                                         @RequestParam("version") String version,
+                                         @RequestParam(value = "owner", defaultValue = "System") String owner) {
         try {
-            return ResponseEntity.ok().body(fileService.uploadFiles(files, visibility, version));
+            return ResponseEntity.ok().body(fileService.uploadFiles(files, visibility, version, owner));
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
     }
-    @GetMapping("/files-search")
-    public ResponseEntity<FilesResponse<File>> getListPagingFile(@ModelAttribute FileSearchRequest request){
+    @PostMapping("/files-search")
+    public ResponseEntity<FilesResponse<File>> getListPagingFile(@RequestBody FileSearchRequest request){
         try {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(fileService.pagingFile(request));
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(fileService.pagingFile(request));
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -57,7 +61,7 @@ public class PrivateFileController {
     @DeleteMapping("/delete/{fileId}")
     public ResponseEntity<?> deleteFile(@PathVariable String fileId) {
         try {
-            fileUtils.isVisibility(fileId);
+//            fileUtils.checkPrivate(fileId);
             fileService.deleteFile(fileId);
             return ResponseEntity.ok().body("Delete successful");
         } catch (IOException e) {
@@ -67,8 +71,8 @@ public class PrivateFileController {
     @GetMapping("/get-content/{fileId}")
     public ResponseEntity<?> getFileContent(@PathVariable("fileId") String id) {
         try {
-            fileUtils.isVisibility(id);
-            Resource resource = fileService.pagingFile(id);
+//            fileUtils.checkPrivate(id);
+            Resource resource = fileService.getContent(id);
             String contentType = Files.probeContentType(Paths.get(resource.getURI()));
             if (contentType == null) {
                 contentType = "application/octet-stream";
@@ -90,8 +94,8 @@ public class PrivateFileController {
             @RequestParam Optional<Double> ratio
     ) {
         try {
-            fileUtils.isVisibility(fileId);
-            Resource resource = fileService.pagingFile(fileId);
+//            fileUtils.checkPrivate(fileId);
+            Resource resource = fileService.getContent(fileId);
             byte[] fileContent = fileService.processImage(resource, width, height, ratio);
             String contentType = Files.probeContentType(Paths.get(resource.getURI()));
             if (contentType == null) {

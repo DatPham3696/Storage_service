@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,37 +36,41 @@ public class FileService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    public File uploadFile(MultipartFile file, boolean visibility, String version) throws IOException {
+    public File uploadFile(MultipartFile file, boolean visibility, String version, String owner) throws IOException {
+        String uuidFileName = UUID.randomUUID().toString() + "." + getFileExtension(file);
         String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Path uploadPath = Paths.get(uploadDir, currentDate);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-        String fileName = file.getOriginalFilename();
-        Path filePath = uploadPath.resolve(fileName);
+        Path filePath = uploadPath.resolve(uuidFileName);
         Files.copy(file.getInputStream(), filePath);
 
         return fileRepository.save(File.builder()
-                .fileName(fileName)
+                .fileName(uuidFileName)
                 .fileType(file.getContentType())
                 .fileSize(String.valueOf(file.getSize()))
                 .filePath(filePath.toString())
                 .visibility(visibility)
                 .version(version)
+                        .owner(owner)
                 .build());
     }
-
-    public String uploadFiles(List<MultipartFile> files, boolean visibility, String version) throws IOException {
+    private String getFileExtension(MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        return fileName != null && fileName.contains(".") ? fileName.substring(fileName.lastIndexOf(".") + 1) : "";
+    }
+    public String uploadFiles(List<MultipartFile> files, boolean visibility, String version, String owner) throws IOException {
         if (files.isEmpty()) {
             return "Files empty";
         }
         for (MultipartFile file : files) {
-            uploadFile(file, visibility, version);
+            uploadFile(file, visibility, version, owner);
         }
         return "Upload file success";
     }
 
-    public Resource pagingFile(String fileId) throws IOException {
+    public Resource getContent(String fileId) throws IOException {
         File fileEntity = fileRepository.findById(fileId).orElseThrow(() -> new RuntimeException("File not found"));
         Path path = Paths.get(fileEntity.getFilePath());
         Resource resource = new FileSystemResource(path);
@@ -130,7 +135,7 @@ public class FileService {
     }
 
     public ResponseEntity<Resource> downloadFile(String fileId) throws IOException {
-        Resource resource = pagingFile(fileId);
+        Resource resource = getContent(fileId);
         File file = fileRepository.findById(fileId).orElseThrow();
         String mimeType = file.getFileType();
         if (mimeType == null || mimeType.isEmpty()) {
