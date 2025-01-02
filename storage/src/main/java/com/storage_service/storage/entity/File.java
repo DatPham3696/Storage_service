@@ -30,4 +30,6 @@ public class File extends Auditable{
     private boolean visibility;
     @Column(name = "version")
     private String version;
+    @Column(name = "owner")
+    private String owner;
 }

@@ -8,6 +8,12 @@ spring:
   username: postgres
   password: postdb
   driver-class-name: org.postgresql.Driver
+ servlet:
+  multipart:
+   enabled: true
+ storage:
+  client-id: abc
+  client-secret: cba
  jpa:
   hibernate:
    ddl-auto: update
@@ -15,15 +21,18 @@ spring:
    dialect: org.hibernate.dialect.PostgreSQLDialect
    format-sql: true
    show-sql: true
-   security:
-    authentication:
-    user:
-     name: admin
-     password: password
-    oauth2:
-     resourceserver:
-      jwt:
-       issuer-uri: http://localhost:8080/realms/IAM
-       jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
+ security:
+#  authentication:
+#   user:
+#    name: admin
+#    password: password
+   oauth2:
+    resourceserver:
+     jwt:
+#      issuer-uri: http://localhost:8080/realms/IAM
+#      jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
+      jwk-set-uris:
+       sso: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
+       internal: http://localhost:8090/api/users/certificate/.well-known/jwks.json
 file:
  upload-dir: uploadFile
